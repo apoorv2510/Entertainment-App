@@ -31,7 +31,19 @@ jobs:
         docker push ${{ secrets.DOCKER_HUB_USERNAME }}/cpp-web:latest
 
     # Deploy to EC2
-    - name: Deploy to EC2
+    - name: Verify SSH Connection
+      uses: appleboy/ssh-action@v0.1.8
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_PRIVATE_KEY }}
+        port: 22
+        script: |
+          echo "Testing SSH connection to EC2 instance..."
+          hostname
+          echo "SSH connection verified successfully!"
+
+    - name: Deploy Application to EC2
       uses: appleboy/ssh-action@v0.1.8
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -40,11 +52,16 @@ jobs:
         port: 22
         script: |
           # Stop and remove the old container
+          echo "Stopping and removing the old container (if exists)..."
           docker stop cpp-web || true
           docker rm cpp-web || true
 
           # Pull the new image
+          echo "Pulling the new Docker image..."
           docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/cpp-web:latest
 
           # Start a new container
+          echo "Starting the updated Docker container..."
           docker run -d --name cpp-web -p 5000:5000 ${{ secrets.DOCKER_HUB_USERNAME }}/cpp-web:latest
+
+          echo "Deployment complete!"
