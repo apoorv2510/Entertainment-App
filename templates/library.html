@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="library-container">
+    <h1>Your Library</h1>
+    <div class="movie-list">
+        {% for movie in movies %}
+            <div class="movie-item">
+                <h3>{{ movie[1] }}</h3>
+                <p>Genre: {{ movie[2] }}</p>
+                <p>Release Year: {{ movie[3] }}</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

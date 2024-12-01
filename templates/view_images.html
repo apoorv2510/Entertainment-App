@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .images-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .image-item {
+        max-width: 300px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .image-item img {
+        width: 100%;
+        height: auto;
+    }
+
+    .image-item:hover {
+        transform: scale(1.05);
+    }
+</style>
+
+<div class="dashboard-container">
+    <h1>Your Uploaded Images</h1>
+    <div class="images-container">
+        {% for image in images %}
+            <div class="image-item">
+                <a href="{{ image }}" target="_blank">
+                    <img src="{{ image }}" alt="Uploaded Image">
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
