@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy to EC2 with Docker Compose
 
 on:
   push:
@@ -25,10 +25,10 @@ jobs:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-    - name: Build and Push Docker Image
+    - name: Build and Push Docker Images with Docker Compose
       run: |
-        docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/cpp-web:latest .
-        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/cpp-web:latest
+        docker compose build
+        docker compose push
 
     # Deploy to EC2
     - name: Verify SSH Connection
@@ -43,7 +43,7 @@ jobs:
           hostname
           echo "SSH connection verified successfully!"
 
-    - name: Deploy Application to EC2
+    - name: Deploy Application to EC2 with Docker Compose
       uses: appleboy/ssh-action@v0.1.8
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -51,24 +51,23 @@ jobs:
         key: ${{ secrets.EC2_PRIVATE_KEY }}
         port: 22
         script: |
-          # Export AWS credentials
+          # Set up AWS credentials
           echo "Setting up AWS credentials for the session..."
           export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           export AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}
           export AWS_DEFAULT_REGION=us-east-1
 
-          # Stop and remove the old container
-          echo "Stopping and removing the old container (if exists)..."
-          docker stop cpp-web || true
-          docker rm cpp-web || true
+          # Stop and remove old containers
+          echo "Stopping and removing existing containers (if any)..."
+          docker compose down || true
 
-          # Pull the new image
-          echo "Pulling the new Docker image..."
-          docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/cpp-web:latest
+          # Pull updated Docker images
+          echo "Pulling the latest images..."
+          docker compose pull
 
-          # Start a new container
-          echo "Starting the updated Docker container..."
-          docker run -d --name cpp-web -p 5000:5000 ${{ secrets.DOCKER_HUB_USERNAME }}/cpp-web:latest
+          # Start the application
+          echo "Starting the updated application with Docker Compose..."
+          docker compose up -d
 
           echo "Deployment complete!"
