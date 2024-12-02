@@ -2,29 +2,42 @@ version: "3.8"
 
 services:
   app:
-    build:
-      context: .
+    image: "${DOCKER_HUB_USERNAME}/cpp-web:latest"
+    container_name: cpp-web
     ports:
       - "5000:5000"
     environment:
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
-      AWS_REGION: ${AWS_REGION}
-      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME}
-      AWS_SNS_TOPIC_ARN: ${AWS_SNS_TOPIC_ARN}
-      AWS_SQS_QUEUE_URL: ${AWS_SQS_QUEUE_URL}
-      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
-      DB_HOST: ${DB_HOST}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-    secrets:
-      - flask_secret_key
-      - aws_credentials
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - AWS_SNS_TOPIC_ARN=${AWS_SNS_TOPIC_ARN}
+      - AWS_SQS_QUEUE_URL=${AWS_SQS_QUEUE_URL}
+      - LAMBDA_FUNCTION_NAME=${LAMBDA_FUNCTION_NAME}
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+    command: flask run --host=0.0.0.0 --port=5000
+    volumes:
+      - ./app:/usr/src/app
+    depends_on:
+      - db
 
-secrets:
-  flask_secret_key:
-    file: ./secrets/flask_secret_key
-  aws_credentials:
-    file: ./secrets/aws_credentials
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
