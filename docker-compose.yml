@@ -25,6 +25,7 @@ services:
       - ./app:/usr/src/app
     depends_on:
       - db
+    restart: always # Ensures the container restarts in case of failure
 
   db:
     image: mysql:8.0
@@ -38,6 +39,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
+    restart: always
 
 volumes:
   mysql_data:
