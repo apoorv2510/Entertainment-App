@@ -60,24 +60,6 @@ jobs:
           hostname
           echo "SSH connection verified successfully!"
 
-    # Ensure Docker Compose is Installed
-    - name: Ensure Docker Compose is Installed
-      uses: appleboy/ssh-action@v0.1.8
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_PRIVATE_KEY }}
-        port: 22
-        script: |
-          echo "Checking if Docker Compose is installed..."
-          if ! docker compose version &> /dev/null; then
-            echo "Installing Docker Compose..."
-            sudo curl -L "https://github.com/docker/compose/releases/download/v2.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-          else
-            echo "Docker Compose is already installed."
-          fi
-
     # Deploy Application to EC2
     - name: Deploy Application with Docker Compose
       uses: appleboy/ssh-action@v0.1.8
@@ -88,7 +70,15 @@ jobs:
         port: 22
         script: |
           # Navigate to the directory
-          cd /home/${{ secrets.EC2_USER }}
+          cd /home/ec2-user
+
+          # Check if the docker-compose.yml file exists
+          if [ -f "docker-compose.yml" ]; then
+            echo "docker-compose.yml already exists. Skipping upload."
+          else
+            echo "Error: docker-compose.yml not found!"
+            exit 1
+          fi
 
           # Set up AWS credentials
           export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
