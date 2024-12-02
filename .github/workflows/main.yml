@@ -81,7 +81,7 @@ jobs:
         port: 22
         script: |
           echo "Checking if Docker Compose is installed..."
-          if ! docker compose version &> /dev/null; then
+          if ! command -v docker-compose &> /dev/null; then
             echo "Installing Docker Compose..."
             sudo curl -L "https://github.com/docker/compose/releases/download/v2.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
@@ -109,14 +109,14 @@ jobs:
 
           # Stop and remove old containers
           echo "Stopping and removing old containers..."
-          docker compose down || true
+          docker-compose down || true
 
           # Pull the latest Docker image
           echo "Pulling the latest Docker image..."
-          docker compose pull
+          docker-compose pull
 
           # Start the updated application
           echo "Starting the updated application..."
-          docker compose up -d
+          docker-compose up -d
 
           echo "Deployment completed successfully!"
