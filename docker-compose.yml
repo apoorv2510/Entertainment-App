@@ -1,13 +1,30 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
-    image: "${DOCKER_HUB_USERNAME}/cpp-web:latest"
+    build:
+      context: .
     ports:
       - "5000:5000"
     environment:
-      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
+      AWS_REGION: ${AWS_REGION}
+      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME}
+      AWS_SNS_TOPIC_ARN: ${AWS_SNS_TOPIC_ARN}
+      AWS_SQS_QUEUE_URL: ${AWS_SQS_QUEUE_URL}
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY}
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    secrets:
+      - flask_secret_key
+      - aws_credentials
+
+secrets:
+  flask_secret_key:
+    file: ./secrets/flask_secret_key
+  aws_credentials:
+    file: ./secrets/aws_credentials
