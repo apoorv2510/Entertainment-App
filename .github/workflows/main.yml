@@ -15,23 +15,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Set up Docker
+    # Set up Docker Buildx
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
+    # Log in to Docker Hub
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-    - name: Build and Push Docker Images with Docker Compose
+    # Build and Push Docker Images with Docker Compose
+    - name: Build and Push Docker Images
       run: |
-        export DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }}
         docker compose build
         docker compose push
 
-    # Deploy to EC2
+    # Verify SSH Connection to EC2
     - name: Verify SSH Connection
       uses: appleboy/ssh-action@v0.1.8
       with:
@@ -44,7 +45,8 @@ jobs:
           hostname
           echo "SSH connection verified successfully!"
 
-    - name: Deploy Application to EC2 with Docker Compose
+    # Deploy Application to EC2 with Docker Compose
+    - name: Deploy Application
       uses: appleboy/ssh-action@v0.1.8
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -52,33 +54,27 @@ jobs:
         key: ${{ secrets.EC2_PRIVATE_KEY }}
         port: 22
         script: |
-          # Set up AWS credentials
-          echo "Setting up AWS credentials for the session..."
+          # Set environment variables
+          echo "Exporting AWS environment variables..."
           export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           export AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}
-          export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
+          export AWS_DEFAULT_REGION=us-east-1
 
-          # Create AWS credential files for Docker if needed
-          mkdir -p ~/.aws
-          echo "[default]" > ~/.aws/credentials
-          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
-          echo "aws_session_token=${{ secrets.AWS_SESSION_TOKEN }}" >> ~/.aws/credentials
-
-          echo "[default]" > ~/.aws/config
-          echo "region=${{ secrets.AWS_REGION }}" >> ~/.aws/config
+          # Navigate to Docker Compose directory
+          echo "Navigating to Docker Compose directory..."
+          cd /path/to/docker-compose
 
           # Stop and remove old containers
-          echo "Stopping and removing existing containers (if any)..."
+          echo "Stopping old containers..."
           docker compose down || true
 
-          # Pull updated Docker images
-          echo "Pulling the latest images..."
+          # Pull the latest Docker images
+          echo "Pulling latest images..."
           docker compose pull
 
-          # Start the application
-          echo "Starting the updated application with Docker Compose..."
+          # Start the updated containers
+          echo "Starting containers..."
           docker compose up -d
 
-          echo "Deployment complete!"
+          echo "Deployment completed successfully!"
